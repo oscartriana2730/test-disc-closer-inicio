@@ -67,6 +67,8 @@ svg.av{display:block;flex:none}
 .brand-mark{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.04em;color:var(--brand);line-height:1}
 .brand-sep{width:1px;height:18px;background:var(--line-strong)}
 .brand-name{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);font-weight:500}
+.brand-by{font-size:13.5px;color:var(--muted);white-space:nowrap}
+.brand-by b{color:var(--ink);font-weight:600}
 .topbar-right{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 #app{padding-top:48px;padding-bottom:80px}
 .screen{animation:enter .35s ease both}
@@ -457,6 +459,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
       <span class="brand-mark">1%</span>
       <span class="brand-sep" aria-hidden="true"></span>
       <span class="brand-name">Método NEO</span>
+      <span class="brand-sep" aria-hidden="true"></span>
+      <span class="brand-by">By <b>Oscar Triana</b></span>
     </div>
     <span class="topbar-right">Test DISC · Nivel inicial</span>
   </div>
@@ -1069,7 +1073,7 @@ function renderResult(){
 
     '<div class="pg">' +
       '<header class="print-head" aria-hidden="true">' +
-        '<div><div class="print-brand"><span class="brand-mark">1%</span><span class="brand-sep"></span><span class="brand-name">Método NEO · Test DISC · Nivel inicial</span></div>' +
+        '<div><div class="print-brand"><span class="brand-mark">1%</span><span class="brand-sep"></span><span class="brand-name">Método NEO</span><span class="brand-sep"></span><span class="brand-by">By <b>Oscar Triana</b></span><span class="brand-sep"></span><span class="brand-name">Test DISC · Nivel inicial</span></div>' +
         '<p class="print-name">' + esc(state.name) + '</p></div>' +
         '<p class="print-date">Resultado del<br>' + today + '</p>' +
       '</header>' +
