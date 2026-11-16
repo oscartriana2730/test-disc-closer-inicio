@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0a0a0a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0a0a0a;
@@ -344,6 +344,52 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
   .quote{padding:24px}
   .actions .btn{flex:1 1 100%}
 }
+
+/* ---------- PDF descargable (se genera fuera de pantalla) ---------- */
+.pdf-stage{position:fixed;left:-10000px;top:0;width:794px;pointer-events:none}
+.pdf-page{width:794px;min-height:1123px;padding:49px 53px;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:12.5px;line-height:1.55}
+.pdf-page *,.pdf-page *::before,.pdf-page *::after{animation:none !important;transition:none !important}
+.pdf-page .print-only{display:block}
+.pdf-page .screen-only,.pdf-page .eyebrow{display:none}
+.pdf-page .pg > :first-child{margin-top:0}
+.pdf-page .card,.pdf-page .hero{box-shadow:none}
+.pdf-page .print-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding-bottom:14px;margin-bottom:18px;border-bottom:2px solid var(--brand-deep)}
+.pdf-page .print-brand{display:flex;align-items:center;gap:10px}
+.pdf-page .print-brand .brand-mark{font-size:18px}
+.pdf-page .print-name{font-family:var(--f-display);font-weight:800;font-size:34px;letter-spacing:-.03em;line-height:1.05;margin-top:12px}
+.pdf-page .print-date{font-family:var(--f-mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:right}
+.pdf-page .hero{margin-top:0;padding:22px}
+.pdf-page .hero-top{flex-direction:row;align-items:center;gap:26px}
+.pdf-page .hero-av svg{width:120px;height:120px}
+.pdf-page .hero-letter{width:46px;height:46px;font-size:25px}
+.pdf-page .hero h1{font-size:40px}
+.pdf-page .hero-desc{font-size:14.5px;margin-top:16px;padding-top:14px}
+.pdf-page .sec{margin-top:24px}
+.pdf-page .sec-head{margin-bottom:10px}
+.pdf-page .sec-head h2{font-size:19px}
+.pdf-page .sec-head p{font-size:12.5px}
+.pdf-page .stats{grid-template-columns:repeat(4, minmax(0,1fr))}
+.pdf-page .cols{grid-template-columns:1fr 1fr}
+.pdf-page .train{grid-template-columns:repeat(3, minmax(0,1fr))}
+.pdf-page .train li{flex-direction:column;align-items:flex-start;gap:10px;padding:14px}
+.pdf-page .train .num{font-size:28px}
+.pdf-page .clients{grid-template-columns:1fr 1fr}
+.pdf-page .clients.single{grid-template-columns:1fr}
+.pdf-page .second{flex-direction:row;gap:20px}
+.pdf-page .second svg{width:80px;height:80px}
+.pdf-page .card{padding:14px}
+.pdf-page .col{padding:0}
+.pdf-page .col li,.pdf-page .train p,.pdf-page .client dd,.pdf-page .second p{font-size:12.5px}
+.pdf-page .client dl > div{padding:9px 11px}
+.pdf-page .client-head svg{width:52px;height:52px}
+.pdf-page .client-head h3{font-size:17px}
+.pdf-page .stat-num b{font-size:30px}
+.pdf-page .own-a{font-size:14px}
+.pdf-page .quote{margin-top:24px;padding:22px}
+.pdf-page .quote p{font-size:24px}
+.pdf-page .quote::after{font-size:160px}
+.pdf-page .final-note{font-size:12px}
+.pdf-help.is-error{color:var(--brand)}
 
 /* ---------- PDF / impresión ---------- */
 @media print{
@@ -1109,7 +1155,7 @@ function renderResult(){
       '<button type="button" class="btn btn-ghost" id="copy">Copiar mi resultado</button>' +
       '<button type="button" class="btn btn-text" id="restart">Repetir el test</button>' +
     '</div>' +
-    '<p class="pdf-help">Se abre la ventana de impresión: en <b>Destino</b> elige <b>Guardar como PDF</b>.</p>' +
+    '<p class="pdf-help" id="pdf-help" role="status">Se descarga un PDF con tu resultado.</p>' +
     '<p class="copy-status" id="copy-status" role="status"></p>' +
     '<div class="copy-fallback" id="copy-fallback">' +
       '<label for="copy-text">No pudimos copiar automáticamente. El texto ya está seleccionado: cópialo con Ctrl+C o Cmd+C.</label>' +
@@ -1138,12 +1184,25 @@ function renderResult(){
   });
 
   document.getElementById("pdf").addEventListener("click", function(){
-    var prevTitle = document.title;
-    var safe = state.name.replace(/[\\/:*?"<>|]+/g, "").trim();
-    document.title = "Resultado DISC Nivel inicial - " + safe;
-    var restore = function(){ document.title = prevTitle; window.removeEventListener("afterprint", restore); };
-    window.addEventListener("afterprint", restore);
-    window.print();
+    var btn = this;
+    if (btn.disabled) return;
+    var help = document.getElementById("pdf-help");
+    var label = btn.innerHTML;
+    var safe = state.name.replace(/[\\/:*?"<>|]+/g, "").trim() || "resultado";
+    btn.disabled = true;
+    btn.textContent = "Generando tu PDF…";
+    help.classList.remove("is-error");
+    help.textContent = "Esto toma unos segundos.";
+    buildPdf("Resultado DISC Nivel inicial - " + safe + ".pdf").then(function(){
+      help.textContent = "Listo. Revisa tus descargas.";
+    }, function(err){
+      help.classList.add("is-error");
+      help.textContent = "No pudimos generar el PDF. Revisa tu conexión a internet e inténtalo de nuevo.";
+      if (window.console) console.error(err);
+    }).then(function(){
+      btn.disabled = false;
+      btn.innerHTML = label;
+    });
   });
 
   document.getElementById("restart").addEventListener("click", function(){
@@ -1154,6 +1213,69 @@ function renderResult(){
     save();
     render(true);
   });
+}
+
+/* ================= PDF: descarga directa ================= */
+var PDF_LIBS = [
+  "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+  "https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"
+];
+var pdfLibsPromise = null;
+function loadScript(src){
+  return new Promise(function(resolve, reject){
+    var s = document.createElement("script");
+    s.src = src; s.async = true;
+    s.onload = resolve;
+    s.onerror = function(){ reject(new Error("No cargó " + src)); };
+    document.head.appendChild(s);
+  });
+}
+function loadPdfLibs(){
+  if (!pdfLibsPromise){
+    pdfLibsPromise = PDF_LIBS.reduce(function(p, src){ return p.then(function(){ return loadScript(src); }); }, Promise.resolve());
+    pdfLibsPromise.catch(function(){ pdfLibsPromise = null; });
+  }
+  return pdfLibsPromise;
+}
+
+async function buildPdf(fileName){
+  await loadPdfLibs();
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+  var section = app.querySelector(".result");
+  var stage = document.createElement("div");
+  stage.className = "pdf-stage";
+  stage.setAttribute("aria-hidden", "true");
+  var pages = [];
+  Array.prototype.forEach.call(section.querySelectorAll(".pg"), function(pg){
+    if (pg.classList.contains("print-hide")) return;
+    var page = document.createElement("div");
+    page.className = "pdf-page";
+    page.setAttribute("style", section.getAttribute("style") || "");
+    page.appendChild(pg.cloneNode(true));
+    stage.appendChild(page);
+    pages.push(page);
+  });
+  document.body.appendChild(stage);
+  try {
+    var W = 794;
+    var opts = {pixelRatio:2, quality:0.9, backgroundColor:"#0a0a0a", width:W};
+    try { opts.fontEmbedCSS = await htmlToImage.getFontEmbedCSS(pages[0]); } catch(e){}
+    await htmlToImage.toJpeg(pages[0], opts); // primer render de calentamiento (Safari)
+    var pdf = new window.jspdf.jsPDF({unit:"mm", format:"a4", orientation:"portrait", compress:true});
+    for (var i = 0; i < pages.length; i++){
+      var img = await htmlToImage.toJpeg(pages[i], opts);
+      var h = pages[i].offsetHeight;
+      var dw = 210, dh = h * 210 / W;
+      if (dh > 297){ dh = 297; dw = W * 297 / h; }
+      if (i) pdf.addPage();
+      pdf.setFillColor(10, 10, 10);
+      pdf.rect(0, 0, 210, 297, "F");
+      pdf.addImage(img, "JPEG", (210 - dw) / 2, 0, dw, dh);
+    }
+    pdf.save(fileName);
+  } finally {
+    stage.remove();
+  }
 }
 
 /* ================= Router ================= */
